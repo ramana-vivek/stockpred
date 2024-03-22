@@ -4,30 +4,11 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from sklearn.preprocessing import MinMaxScaler
 from tensorflow.keras.models import Sequential
+from keras.models import load_model
 from tensorflow.keras.layers import Dense, LSTM, Dropout
 import yfinance as yf
 
-def create_model(X_train):
-    model = Sequential()
-
-    model.add(LSTM(units=100, return_sequences=True, input_shape=(X_train.shape[1], 1)))
-    model.add(Dropout(0.2))
-
-    model.add(LSTM(units=100, return_sequences=True))
-    model.add(Dropout(0.2))
-
-    model.add(LSTM(units=50, return_sequences=True))
-    model.add(Dropout(0.2))
-
-    model.add(LSTM(units=50))
-    model.add(Dropout(0.2))
-
-    model.add(Dense(units=1))
-
-    model.compile(optimizer='adam', loss='mean_squared_error')
-    return model
-
-def predict_stock_price(stock_name, ep, ahead, d):
+def predict_stock_price(stock_name, ahead, d):
     stock = yf.Ticker(stock_name)
     hist = stock.history(period="5y")
 
@@ -47,8 +28,7 @@ def predict_stock_price(stock_name, ep, ahead, d):
     X_train, y_train = np.array(X_train), np.array(y_train)
     X_train = np.reshape(X_train, (X_train.shape[0], X_train.shape[1], 1))
 
-    model = create_model(X_train)
-    model.fit(X_train, y_train, epochs=ep, batch_size=32)
+    model = load_model("keras_model.h5")
 
     dataset_train = df.iloc[:n, 1:2]
     dataset_test = df.iloc[n:, 1:2]
@@ -84,13 +64,12 @@ def main():
     st.title("Stock Price Prediction")
 
     stock_name = st.text_input("Enter stock name (e.g., AAPL, GOOG, TSLA)")
-    ep = st.number_input("Here 1 epoch due to free deployment usasge", min_value=1, value=1, step=1)
-    ahead = st.number_input("Enter number of days ahead to predict you can predict upto 1 month ", min_value=1, value=30, step=1)
-    d = st.number_input("Enter number of previous days to consider you can take upto 1 year", min_value=1, value=365, step=1)
+    ahead = st.number_input("Enter number of days ahead to predict you can predict upto 1 month ", min_value=1, value=30, step=50)
+    d = st.number_input("Enter number of previous days to consider you can take upto 1 year", min_value=1, value=365, step=50)
 
     if st.button("Predict"):
         if stock_name:
-            fig = predict_stock_price(stock_name, ep, ahead, d)
+            fig = predict_stock_price(stock_name, ahead, d)
             st.pyplot(fig)
         else:
             st.warning("Please enter a stock name.")
