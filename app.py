@@ -30,7 +30,7 @@ def predict_stock_price(stock_name, ahead, d):
     X_train, y_train = np.array(X_train), np.array(y_train)
     X_train = np.reshape(X_train, (X_train.shape[0], X_train.shape[1], 1))
 
-    model = load_model("keras_model.h5")
+    model = load_model("keras_model.keras")
 
     dataset_train = df.iloc[:n, 1:2]
     dataset_test = df.iloc[n:, 1:2]
